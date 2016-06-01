@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2016 ShopGo. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="ShopGo\Aws\Model\Config\SchemaLocator" type="ShopGo\AdvancedConfig\Model\Config\SchemaLocator">
+        <arguments>
+            <argument name="fileName" xsi:type="string">config.xsd</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="ShopGo\Aws\Model\Config\File" type="ShopGo\AdvancedConfig\Model\Config\File">
+        <arguments>
+            <argument name="schemaLocator" xsi:type="object">ShopGo\Aws\Model\Config\SchemaLocator</argument>
+            <argument name="vendorConfigPath" xsi:type="string">vendor/shopgo/aws-config/</argument>
+            <argument name="varConfigPath" xsi:type="string">shopgo/aws/</argument>
+            <argument name="fileName" xsi:type="string">config.xml</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="ShopGo\Aws\Model\Config" type="ShopGo\AdvancedConfig\Model\Config">
+        <arguments>
+            <argument name="fileConfig" xsi:type="object">ShopGo\Aws\Model\Config\File</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="ShopGo\Aws\Model\Logger\Handler\Base" type="ShopGo\Core\Model\Logger\Handler\Base">
+        <arguments>
+            <argument name="logModulePath" xsi:type="string">aws/</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="ShopGo\Aws\Model\Logger\Handler\System" type="ShopGo\Aws\Model\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">system.log</argument>
+            <argument name="loggerType" xsi:type="string">info</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="ShopGo\Aws\Model\Logger\Handler\Debug" type="ShopGo\Aws\Model\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">debug.log</argument>
+            <argument name="loggerType" xsi:type="string">debug</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="ShopGo\Aws\Model\Logger\Handler\Exception" type="ShopGo\Aws\Model\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">exception.log</argument>
+            <argument name="loggerType" xsi:type="string">info</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="ShopGo\Aws\Model\Logger\Monolog" type="ShopGo\Core\Model\Logger\Monolog">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">ShopGo\Aws\Model\Logger\Handler\System</item>
+                <item name="debug" xsi:type="object">ShopGo\Aws\Model\Logger\Handler\Debug</item>
+                <item name="exception" xsi:type="object">ShopGo\Aws\Model\Logger\Handler\Exception</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="ShopGo\Aws\Model\Logger" type="ShopGo\Core\Model\Logger">
+        <arguments>
+            <argument name="logger" xsi:type="object">ShopGo\Aws\Model\Logger\Monolog</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="ShopGo\Aws\Helper\Utility" type="ShopGo\Core\Helper\Utility">
+        <arguments>
+            <argument name="config" xsi:type="object">ShopGo\Aws\Model\Config</argument>
+            <argument name="logger" xsi:type="object">ShopGo\Aws\Model\Logger</argument>
+        </arguments>
+    </virtualType>
+    <type name="ShopGo\Aws\Helper\AbstractHelper">
+        <arguments>
+            <argument name="utility" xsi:type="object">ShopGo\Aws\Helper\Utility</argument>
+        </arguments>
+    </type>
+</config>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Copyright © 2016 ShopGo. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="aws">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="general"/>
+                <xs:element ref="credentials"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="general">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="1">
+                    <xs:element ref="version"/>
+                    <xs:element ref="region"/>
+                </xs:choice>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="version">
+        <xs:annotation>
+            <xs:documentation>
+                Version Resource. Recursive complex type
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <xs:element name="region">
+        <xs:annotation>
+            <xs:documentation>
+                Region Resource. Recursive complex type
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <xs:element name="credentials">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="1">
+                    <xs:element ref="aws_key"/>
+                    <xs:element ref="aws_secret"/>
+                </xs:choice>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="aws_key">
+        <xs:annotation>
+            <xs:documentation>
+                AWS Key Resource. Recursive complex type
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <xs:element name="aws_secret">
+        <xs:annotation>
+            <xs:documentation>
+                AWS Secret Resource. Recursive complex type
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+</xs:schema>
