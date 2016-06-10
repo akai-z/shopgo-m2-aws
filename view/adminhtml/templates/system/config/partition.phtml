@@ -1,0 +1,82 @@
+<?php
+/**
+ * Copyright © 2016 ShopGo. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php
+/**
+ * @var $block \ShopGo\Aws\Block\Adminhtml\System\Config\Partition
+ */
+?>
+<?php if ($block->isActive()): ?>
+<script>
+require([
+    'jquery',
+    'Magento_Ui/js/modal/alert'
+], function(jQuery, alert) {
+
+//<![CDATA[
+    var configFieldIdPrefix = '#<?php echo $block->getConfigFieldIdPrefix() ?>_';
+    var defaultMessage = '<?php echo __(
+        'Could not retrieve region list!'
+        . ' If the issue persists, please contact the module author.'
+    ) ?>';
+
+    function retrieveRegionList() {
+        var params = {
+            partition: jQuery(configFieldIdPrefix + 'partition').val(),
+            form_key: FORM_KEY
+        };
+
+        var regionField = jQuery(configFieldIdPrefix + 'region');
+
+        jQuery.ajax({
+            url: '<?php /* @escapeNotVerified */ echo $block->getRegionListAjaxUrl() ?>',
+            method: 'POST',
+            data: params,
+            dataType: 'json',
+            showLoader: true,
+            beforeSend: function() {
+                regionField.empty();
+            },
+            success: function(response) {
+                var result = defaultMessage;
+
+                try {
+                    if (response.status) {
+                        result = response.description;
+                        jQuery.each(response.data, function(i, data) {
+                            var option = document.createElement('option');
+                            regionField.append(
+                                jQuery(option).attr('value', data.value).text(data.label)
+                            );
+                        });
+                    } else if (response.status === 0) {
+                        result = response.description;
+                    }
+                } catch (e) {}
+
+                alert({
+                    content: result
+                });
+            },
+            error: function(response) {
+                alert({
+                    content: defaultMessage
+                });
+            }
+        });
+    }
+
+    jQuery(configFieldIdPrefix + 'partition').on('change', function(e) {
+        retrieveRegionList();
+    });
+//]]>
+
+});
+</script>
+<?php endif ?>

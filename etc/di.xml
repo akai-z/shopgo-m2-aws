@@ -72,4 +72,9 @@
             <argument name="utility" xsi:type="object">ShopGo\Aws\Helper\Utility</argument>
         </arguments>
     </type>
+    <type name="ShopGo\Aws\Model\System\Config\Source\Region">
+        <arguments>
+            <argument name="helper" xsi:type="object">ShopGo\Aws\Helper\Data</argument>
+        </arguments>
+    </type>
 </config>

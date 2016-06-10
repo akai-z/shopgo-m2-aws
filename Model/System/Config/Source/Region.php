@@ -5,31 +5,69 @@
  */
 namespace ShopGo\Aws\Model\System\Config\Source;
 
-use Magento\Framework\Option\ArrayInterface;
-use Aws\Common\Enum\Region as AwsRegion;
-
 /**
  * Source model for AWS regions
  */
-class Region implements ArrayInterface
+class Region
 {
     /**
+     * @var \ShopGo\Aws\Helper\AbstractHelper
+     */
+    protected $helper;
+
+    /**
+     * @var bool
+     */
+    protected $defaultRegion;
+
+    /**
+     * @var string
+     */
+    protected $serviceCode;
+
+    /**
+     * @param \ShopGo\Aws\Helper\AbstractHelper $helper
+     * @param bool $defaultRegion
+     * @param string $serviceCode
+     */
+    public function __construct(
+        \ShopGo\Aws\Helper\AbstractHelper $helper,
+        $defaultRegion = true,
+        $serviceCode = ''
+    ) {
+        $this->helper = $helper;
+        $this->defaultRegion = $defaultRegion;
+        $this->serviceCode = $serviceCode;
+    }
+
+    /**
+     * @param string $partition
      * @return array
      */
-    public function toOptionArray()
+    public function toOptionArray($partition)
     {
-        return [
-            ['value' => '', 'label' => __('--Please Select--')],
-            ['value' => AwsRegion::NORTHERN_VIRGINIA, 'label' => __('US East (Northen Verginia)')],
-            ['value' => AwsRegion::NORTHERN_CALIFORNIA, 'label' => __('US West (Northen California)')],
-            ['value' => AwsRegion::OREGON, 'label' => __('US West (Oregon)')],
-            ['value' => AwsRegion::IRELAND, 'label' => __('EU (Ireland)')],
-            ['value' => AwsRegion::FRANKFURT, 'label' => __('EU (Frankfurt)')],
-            ['value' => AwsRegion::TOKYO, 'label' => __('Asia Pacific (Tokyo)')],
-            ['value' => 'ap-northeast-2', 'label' => __('Asia Pacific (Seoul)')],
-            ['value' => AwsRegion::SINGAPORE, 'label' => __('Asia Pacific (Singapore)')],
-            ['value' => AwsRegion::SYDNEY, 'label' => __('Asia Pacific (Sydney)')],
-            ['value' => AwsRegion::SAO_PAULO, 'label' => __('South America (São Paulo)')]
-        ];
+        if (!$partition) {
+            $partition = $this->helper->getAwsPartition();
+            if (!$partition) {
+                $defaultPartition = $this->helper->getAwsDefaultPartition();
+                $partition = $defaultPartition['code'];
+            }
+        }
+
+        if (!$this->defaultRegion) {
+            $regions = $this->helper->getAwsServiceEndpoints($partition, $this->serviceCode);
+        } else {
+            $regions = $this->helper->getAwsPartitionRegions($partition);
+        }
+
+        $options = $regions
+            ? [['value' => '', 'label' => __('--Please Select--')]]
+            : [['value' => '', 'label' => __('-NO AVAILABLE REGIONS FOR THE SELECTED PARTITION-')]];
+
+        foreach ($regions as $name => $value) {
+            $options[] = ['value' => $name, 'label' => __($value['description'])];
+        }
+
+        return $options;
     }
 }

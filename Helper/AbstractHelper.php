@@ -18,6 +18,11 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
     const XML_PATH_AWS_GENERAL_VERSION = 'aws/general/version';
 
     /**
+     * XML path AWS general partition
+     */
+    const XML_PATH_AWS_GENERAL_PARTITION = 'aws/general/partition';
+
+    /**
      * XML path AWS general region
      */
     const XML_PATH_AWS_GENERAL_REGION = 'aws/general/region';
@@ -33,9 +38,28 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
     const XML_PATH_CREDENTIALS_AWS_SECRET = 'aws/credentials/aws_secret';
 
     /**
-     * Log module directory path
+     * AWS endpoints data file path
      */
-    const LOG_MODULE_PATH = 'aws/';
+    const AWS_ENDPOINTS_DATA_FILE_PATH = '/vendor/aws/aws-sdk-php/src/data/endpoints.json';
+
+    /**
+     * AWS default partition
+     */
+    const AWS_DEFAULT_PARTITION_CODE = 'aws';
+    const AWS_DEFAULT_PARTITION_NAME = 'AWS Standard';
+
+    /**
+     * @var array
+     */
+    protected $awsDefaultPartition = [
+        'code' => self::AWS_DEFAULT_PARTITION_CODE,
+        'name' => self::AWS_DEFAULT_PARTITION_NAME
+    ];
+
+    /**
+     * @var array
+     */
+    protected $awsEndpointsPartitions = [];
 
     /**
      * Get AWS version
@@ -44,8 +68,18 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
      */
     public function getAwsVersion()
     {
-        $version = $this->getConfig()->getValue(self::XML_PATH_AWS_GENERAL_VERSION);
-        return !$version ? self::AWS_VERSION : $version;
+        $version = $this->getConfig()->getValue(static::XML_PATH_AWS_GENERAL_VERSION);
+        return !$version ? static::AWS_VERSION : $version;
+    }
+
+    /**
+     * Get AWS partition
+     *
+     * @return string
+     */
+    public function getAwsPartition()
+    {
+        return $this->getConfig()->getValue(static::XML_PATH_AWS_GENERAL_PARTITION);
     }
 
     /**
@@ -55,7 +89,7 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
      */
     public function getAwsRegion()
     {
-        return $this->getConfig()->getValue(self::XML_PATH_AWS_GENERAL_REGION);
+        return $this->getConfig()->getValue(static::XML_PATH_AWS_GENERAL_REGION);
     }
 
     /**
@@ -65,7 +99,7 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
      */
     public function getAwsKey()
     {
-        return $this->getConfig()->getValue(self::XML_PATH_CREDENTIALS_AWS_KEY);
+        return $this->getConfig()->getValue(static::XML_PATH_CREDENTIALS_AWS_KEY);
     }
 
     /**
@@ -75,7 +109,90 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
      */
     public function getAwsSecret()
     {
-        return $this->getConfig()->getValue(self::XML_PATH_CREDENTIALS_AWS_SECRET);
+        return $this->getConfig()->getValue(static::XML_PATH_CREDENTIALS_AWS_SECRET);
+    }
+
+    /**
+     * Get AWS default partition
+     *
+     * @return array
+     */
+    public function getAwsDefaultPartition()
+    {
+        return $this->awsDefaultPartition;
+    }
+
+    /**
+     * Get AWS endpoints data
+     *
+     * @return array
+     */
+    public function getAwsEndpointsData()
+    {
+        return \Aws\load_compiled_json(BP . self::AWS_ENDPOINTS_DATA_FILE_PATH);
+    }
+
+    /**
+     * Get AWS endpoints partitions
+     *
+     * @return array
+     */
+    public function getAwsEndpointsPartitions()
+    {
+        if ($this->awsEndpointsPartitions) {
+            return $this->awsEndpointsPartitions;
+        }
+
+        $endpointsData = $this->getAwsEndpointsData();
+        foreach ($endpointsData['partitions'] as $partition) {
+            $this->awsEndpointsPartitions[$partition['partition']] = $partition;
+        }
+
+        return $this->awsEndpointsPartitions;
+    }
+
+    /**
+     * Get AWS partition regions
+     *
+     * @param string $partition
+     * @return array
+     */
+    public function getAwsPartitionRegions($partition = self::AWS_DEFAULT_PARTITION_CODE)
+    {
+        $regions = [];
+        $endpointsPartitions = $this->getAwsEndpointsPartitions();
+
+        if (isset($endpointsPartitions[$partition])) {
+            $regions = $endpointsPartitions[$partition]['regions'];
+        }
+
+        return $regions;
+    }
+
+    /**
+     * Get AWS service endpoints
+     *
+     * @param string $partition
+     * @param string $service
+     * @return array
+     */
+    public function getAwsServiceEndpoints($partition, $service)
+    {
+        $endpoints = [];
+        $endpointsPartitions = $this->getAwsEndpointsPartitions();
+
+        if (isset($endpointsPartitions[$partition])) {
+            $regions = $endpointsPartitions[$partition]['regions'];
+
+            if (isset($endpointsPartitions[$partition]['services'][$service])) {
+                $endpoints = $endpointsPartitions[$partition]['services'][$service]['endpoints'];
+                foreach ($endpoints as $name => $value) {
+                    $endpoints[$name]['description'] = $regions[$name]['description'];
+                }
+            }
+        }
+
+        return $endpoints;
     }
 
     /**
@@ -98,15 +215,14 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
     }
 
     /**
-     * Check whether an object is Guzzle service resource model
+     * Check whether an object is an AWS result
      *
      * @param mixed $object
      * @return bool
      */
-    public function isAwsGuzzleResourceModel($object)
+    public function isAwsResult($object)
     {
-        return gettype($object) == 'object'
-            && $object instanceof \Guzzle\Service\Resource\Model;
+        return gettype($object) == 'object' && $object instanceof \Aws\Result;
     }
 
     /**
@@ -114,11 +230,10 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
      *
      * @param mixed $result
      * @param string $param
-     * @return string
+     * @return mixed
      */
     public function getAwsClientResult($result, $param)
     {
-        return $this->isAwsGuzzleResourceModel($result)
-            ? $result->get($param) : '';
+        return $this->isAwsResult($result) ? $result->get($param) : $result;
     }
 }
