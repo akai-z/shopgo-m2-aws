@@ -8,19 +8,19 @@ namespace ShopGo\Aws\Helper;
 abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
 {
     /**
-     * Default version
+     * Default AWS version
      */
-    const VERSION = 'latest';
+    const AWS_VERSION = 'latest';
 
     /**
-     * XML path general version
+     * XML path AWS general version
      */
-    const XML_PATH_GENERAL_VERSION = 'aws/general/version';
+    const XML_PATH_AWS_GENERAL_VERSION = 'aws/general/version';
 
     /**
-     * XML path general region
+     * XML path AWS general region
      */
-    const XML_PATH_GENERAL_REGION = 'aws/general/region';
+    const XML_PATH_AWS_GENERAL_REGION = 'aws/general/region';
 
     /**
      * XML path credentials AWS key
@@ -38,24 +38,24 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
     const LOG_MODULE_PATH = 'aws/';
 
     /**
-     * Get version
+     * Get AWS version
      *
      * @return string
      */
-    public function getVersion()
+    public function getAwsVersion()
     {
-        $version = $this->getConfig()->getValue(self::XML_PATH_GENERAL_VERSION);
-        return !$version ? self::VERSION : $version;
+        $version = $this->getConfig()->getValue(self::XML_PATH_AWS_GENERAL_VERSION);
+        return !$version ? self::AWS_VERSION : $version;
     }
 
     /**
-     * Get region
+     * Get AWS region
      *
      * @return string
      */
-    public function getRegion()
+    public function getAwsRegion()
     {
-        return $this->getConfig()->getValue(self::XML_PATH_GENERAL_REGION);
+        return $this->getConfig()->getValue(self::XML_PATH_AWS_GENERAL_REGION);
     }
 
     /**
@@ -83,11 +83,11 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
      *
      * @return array
      */
-    public function getClientConfig()
+    public function getAwsClientConfig()
     {
         $config = [
-            'version' => $this->getVersion(),
-            'region'  => $this->getRegion(),
+            'version' => $this->getAwsVersion(),
+            'region'  => $this->getAwsRegion(),
             'credentials' => [
                 'key'     => $this->getAwsKey(),
                 'secret'  => $this->getAwsSecret()
@@ -103,22 +103,22 @@ abstract class AbstractHelper extends \ShopGo\Core\Helper\AbstractHelper
      * @param mixed $object
      * @return bool
      */
-    public function isGuzzleResourceModel($object)
+    public function isAwsGuzzleResourceModel($object)
     {
         return gettype($object) == 'object'
             && $object instanceof \Guzzle\Service\Resource\Model;
     }
 
     /**
-     * Get client result
+     * Get AWS client result
      *
      * @param mixed $result
      * @param string $param
      * @return string
      */
-    public function getClientResult($result, $param)
+    public function getAwsClientResult($result, $param)
     {
-        return $this->isGuzzleResourceModel($result)
+        return $this->isAwsGuzzleResourceModel($result)
             ? $result->get($param) : '';
     }
 }
